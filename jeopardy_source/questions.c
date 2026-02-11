@@ -10,11 +10,13 @@
 #include <string.h>
 #include "questions.h"
 
-static char categories[NUM_CATEGORIES][MAX_LEN] = {
+char categories[NUM_CATEGORIES][MAX_LEN] = {
     "programming", 
     "algorithms", 
     "databases"
 };
+
+question questions[NUM_QUESTIONS];
 
 // Initializes the array of questions for the game
 void initialize_game(void)
