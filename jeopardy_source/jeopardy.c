@@ -20,10 +20,36 @@
 // Put global environment variables here
 
 // Processes the answer from the user containing what is or who is and tokenizes it to retrieve the answer.
-void tokenize(char *input, char **tokens);
+void tokenize(char *input, char **tokens) {
+    int index = 0;
+    char *token = strtok(input, " ");
+
+    while (token != NULL) {
+        tokens[index++] = token;
+        token = strtok(NULL, " ");
+    }
+
+    tokens[index] = NULL; //end of list
+}
 
 // Displays the game results for each player, their name and final score, ranked from first to last place
-void show_results(player *players, int num_players);
+void show_results(player *players, int num_players) {
+    //sort players by score descending
+    for (int i = 0; i < num_players - 1; i++) {
+        for (int j = 0; j < num_players - i -1; j++) {
+            if (players[j].score < players[j+1].score) {
+                player temp = players[j];
+                players [j] = players[j+1];
+                players[j+1] = temp;
+            }
+        }
+    }
+
+    printf("\nFinal Results:\n");
+    for (int i = 0; i < num_players; i++) {
+        printf("%d. %s - $%d\n", i + 1, players[i].name, players[i].score);
+    }
+}
 
 
 int main(int argc, char *argv[])
