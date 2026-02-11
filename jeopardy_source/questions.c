@@ -215,6 +215,13 @@ bool valid_answer(char *category, int value, char *answer)
 // Returns true if the question has already been answered
 bool already_answered(char *category, int value)
 {
-    // lookup the question and see if it's already been marked as answered
+    for (int i = 0; i < NUM_QUESTIONS; i++)
+    {
+        if (strcmp(questions[i].category, category) == 0 &&
+            questions[i].value == value)
+        {
+            return questions[i].answered;
+        }
+    }
     return false;
 }
