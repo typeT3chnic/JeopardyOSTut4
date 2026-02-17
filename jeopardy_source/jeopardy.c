@@ -64,17 +64,77 @@ int main(int argc, char *argv[])
     initialize_game();
 
     // Prompt for players names
+    printf("Enter player names (up to %d players):\n", NUM_PLAYERS);
     
     // initialize each of the players in the array
-
+    for (int i = 0; i < NUM_PLAYERS; i++) {
+        printf("Player %d: ", i + 1);
+        if (fgets(players[i].name, MAX_LEN, stdin) != NULL) {
+            // Remove newline character from the end of the name
+            size_t len = strlen(players[i].name);
+            if (len > 0 && players[i].name[len - 1] == '\n') {
+                players[i].name[len - 1] = '\0';
+            }
+            players[i].score = 0; // Initialize score to 0
+        } else {
+            fprintf(stderr, "Error reading player name.\n");
+            return EXIT_FAILURE;
+        }
+    }
+    
     // Perform an infinite loop getting command input from users until game ends
     while (fgets(buffer, BUFFER_LEN, stdin) != NULL)
     {
         // Call functions from the questions and players source files
+        display_categories();
+        
+        char category[MAX_LEN];
+        char player_name[MAX_LEN];
+        int value;
+        
+        printf("Enter player name");
+        fgets(player_name, MAX_LEN, stdin);
+        player_name[strcspn(player_name, "\n")] = '\0';
+
+        if(!player_exists(players, NUM_PLAYERS, player_name)) {
+            printf("Player not found. Please enter a valid player name.\n");
+            continue;
+        }
 
         // Execute the game until all questions are answered
+        printf("Enter category: ");
+        fgets(category, MAX_LEN, stdin);
+        category[strcspn(category, "\n")] = '\0';
+
+        printf("Enter value: ");
+        fgets(buffer, BUFFER_LEN, stdin);
+        value = atoi(buffer);
+
+        if(already_answered(category, value)) {
+            printf("Question already answered. Please select another question.\n");
+            continue;
+        }
+
+        display_question(category, value);
+
+        printf("Enter your answer: ");
+        fgets(buffer, BUFFER_LEN, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        if(valid_answer(category, value, buffer)) {
+            printf("Correct!\n");
+            // Update player's score
+        }
+        else {
+            printf("Incorrect.\n");
+            // Update player's score
+        }
+
 
         // Display the final results and exit
+
+        show_results(players, NUM_PLAYERS);
+
     }
     return EXIT_SUCCESS;
 }
