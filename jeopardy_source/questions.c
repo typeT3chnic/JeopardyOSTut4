@@ -201,12 +201,16 @@ bool valid_answer(char *category, int value, char *answer)
             if (token == NULL || strcasecmp(token, "is") != 0)
                 return false;
 
-            // The rest is the actual answer
-            char *actual_answer = strtok(NULL, "");
+            // The rest is the actual answer - get everything after "what is " or "who is "
+            char *actual_answer = strtok(NULL, "\0");
             if (actual_answer == NULL)
                 return false;
 
-
+            // Trim leading/trailing whitespace from actual_answer
+            while (*actual_answer == ' ') actual_answer++;
+            int len = strlen(actual_answer);
+            while (len > 0 && actual_answer[len-1] == ' ') len--;
+            actual_answer[len] = '\0';
 
             if (strcasecmp(questions[i].answer, actual_answer) == 0)
             {
