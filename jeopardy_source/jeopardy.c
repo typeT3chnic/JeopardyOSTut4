@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdbool.h>
+#include <time.h>
 #include "questions.h"
 #include "players.h"
 #include "jeopardy.h"
@@ -56,6 +58,7 @@ int main(int argc, char *argv[])
 {
     // An array of 4 players, may need to be a pointer if you want it set dynamically
     player players[NUM_PLAYERS];
+    int num_players = 0;
     
     // Input buffer and and commands
     char buffer[BUFFER_LEN] = { 0 };
@@ -75,15 +78,28 @@ int main(int argc, char *argv[])
             if (len > 0 && players[i].name[len - 1] == '\n') {
                 players[i].name[len - 1] = '\0';
             }
-            players[i].score = 0; // Initialize score to 0
+            // Only count non-empty names
+            if (strlen(players[i].name) > 0) {
+                players[i].score = 0; // Initialize score to 0
+                num_players++;
+            }
         } else {
             fprintf(stderr, "Error reading player name.\n");
             return EXIT_FAILURE;
         }
     }
     
-    // Perform an infinite loop getting command input from users until game ends
-    while (fgets(buffer, BUFFER_LEN, stdin) != NULL)
+    if (num_players == 0) {
+        fprintf(stderr, "At least one player is required.\n");
+        return EXIT_FAILURE;
+    }
+    
+    // Perform game loop until all questions are answered
+    int total_questions = NUM_QUESTIONS;
+    int answered_count = 0;
+    int current_player = rand() % num_players;  // Random first turn
+    
+    while (answered_count < total_questions)
     {
         // Call functions from the questions and players source files
         display_categories();
@@ -92,28 +108,39 @@ int main(int argc, char *argv[])
         char player_name[MAX_LEN];
         int value;
         
-        printf("Enter player name");
-        fgets(player_name, MAX_LEN, stdin);
-        player_name[strcspn(player_name, "\n")] = '\0';
+        // Select player sequentially (starting from random first turn)
+        strcpy(player_name, players[current_player].name);
+        printf("\n%s's turn!\n", player_name);
 
-        if(!player_exists(players, NUM_PLAYERS, player_name)) {
-            printf("Player not found. Please enter a valid player name.\n");
-            continue;
-        }
+        do{
+            // Execute the game until all questions are answered
+            do {
+                printf("Enter category: ");
+                fgets(category, MAX_LEN, stdin);
+                category[strcspn(category, "\n")] = '\0';
+                if (strlen(category) == 0 || !valid_category(category)) {
+                    printf("Invalid category. Please try again.\n");
+                }
 
-        // Execute the game until all questions are answered
-        printf("Enter category: ");
-        fgets(category, MAX_LEN, stdin);
-        category[strcspn(category, "\n")] = '\0';
+            } while (strlen(category) == 0 || !valid_category(category));
 
-        printf("Enter value: ");
-        fgets(buffer, BUFFER_LEN, stdin);
-        value = atoi(buffer);
 
-        if(already_answered(category, value)) {
-            printf("Question already answered. Please select another question.\n");
-            continue;
-        }
+            do{
+                printf("Enter value: ");
+                fgets(buffer, BUFFER_LEN, stdin);
+                buffer[strcspn(buffer, "\n")] = '\0';
+                value = atoi(buffer);
+                if (value <= 0 || value % 100 != 0 || value > 400) {
+                    printf("Invalid value. Please enter a multiple of 100.\n");
+                }
+            } while (value <= 0 || value % 100 != 0 || value > 400);
+
+            if(already_answered(category, value)) {
+                printf("Question already answered. Please select another question.\n");
+                continue;
+            }
+
+        } while (already_answered(category, value));
 
         display_question(category, value);
 
@@ -123,18 +150,32 @@ int main(int argc, char *argv[])
 
         if(valid_answer(category, value, buffer)) {
             printf("Correct!\n");
-            // Update player's score
+            update_score(players, NUM_PLAYERS, player_name, value);
+            if(players[current_player].score >= 0) {
+                printf("%s's score is now $%d\n", player_name, players[current_player].score);
+            }
+            else {
+                printf("%s's score is now -$%d\n", player_name, abs(players[current_player].score));
+            }
+        
+            answered_count++;
+            current_player = (current_player + 1) % num_players;  // Move to next player
         }
         else {
             printf("Incorrect.\n");
-            // Update player's score
+            update_score(players, NUM_PLAYERS, player_name, -value);
+            if(players[current_player].score >= 0) {
+                printf("%s's score is now $%d\n", player_name, players[current_player].score);
+            }
+            else {
+                printf("%s's score is now -$%d\n", player_name, abs(players[current_player].score));
+            }
+            answered_count++;
+            current_player = (current_player + 1) % num_players;  // Move to next player
         }
-
-
-        // Display the final results and exit
-
-        show_results(players, NUM_PLAYERS);
-
     }
+
+    // Display the final results and exit
+    show_results(players, num_players);
     return EXIT_SUCCESS;
 }

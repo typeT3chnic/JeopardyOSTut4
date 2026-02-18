@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "questions.h"
 
 char categories[NUM_CATEGORIES][MAX_LEN] = {
@@ -143,6 +144,16 @@ void display_categories(void)
         }
         printf("\n");
     }
+}
+
+//Validates if the category entered by the user is valid
+bool valid_category(char *category)
+{
+    for (int i = 0; i < NUM_CATEGORIES; i++) {
+        if (strcasecmp(categories[i], category) == 0)
+            return true;
+    }
+    return false;
 }
 
 // Displays the question for the category and dollar value

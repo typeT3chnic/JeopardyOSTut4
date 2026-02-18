@@ -33,6 +33,8 @@ extern question questions[NUM_QUESTIONS];
 // An array of 12 questions (4 for each category), initialized in initialize_game
 // this may need to be a pointer if you want it set dynamically
 
+// Validates if the category entered by the user is valid
+bool valid_category(char *category);
 
 // Initializes the array of questions for the game
 void initialize_game(void);
